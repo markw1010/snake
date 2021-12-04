@@ -1,18 +1,27 @@
 import pygame
 import sys
-
+import numpy as np
 
 elementSize = 25
-snake = [[13,13],[13,14]] # [13,13] is the head of the snake. [13,14] is the first body part of the snake
+snake = [[13,13],[13,14]]   # [13,13] is the head of the snake. [13,14] is the first body part of the snake
+appleCoordination = []
 direction = 0   # 0 = up, 1 = right, 2 = down, 3 = left
 
 pygame.init()
 clock = pygame.time.Clock()
-
+font = pygame.font.SysFont('arialblack', 35)
 screen = pygame.display.set_mode([700,700]) # 700 is the size of the gamefield
+
+def textObject(text, font):
+    textArea = font.render(text, True, (255, 255, 255))
+    return textArea, textArea.get_rect()
 
 def draw():
     screen.fill((0, 102, 0))
+
+    for apple in appleCoordination:
+        coordination = [apple[0] * elementSize, apple[1] * elementSize]     # The coordinates for the apple spawn. apple[0] = x coordinate. apple[1] = y coordinate.
+        pygame.draw.rect(screen, (255, 0, 0), (coordination[0], coordination[1], elementSize, elementSize), 0)      # spawn the apple
 
     head = True
     for x in snake:
@@ -21,13 +30,32 @@ def draw():
             pygame.draw.rect(screen, (0,0,0), (coordinate[0], coordinate[1], elementSize, elementSize),0) # rect is a square. (0,0,0) is the color black. coordinate[0] = x coordinate, coordinate[1] = y coordinate. elementSize = width and height of the square. 0 = square is filled out
             head = False
         else:
-            pygame.draw.rect(screen, (47, 79, 79), (coordinate[0], coordinate[1], elementSize, elementSize), 0) # (47, 79, 79) is a grey color
+            pygame.draw.rect(screen, (255, 255, 0), (coordinate[0], coordinate[1], elementSize, elementSize), 0) # (47, 79, 79) is a grey color
+
+
+# This method avoids that an apple can be generated on another apple or on any part of the snake
+def appleCoordinateGenerator():
+    notOK = True
+    while notOK:
+        coordinate = [np.random.randint(0, 28), np.random.randint(0, 28)]     # generates random numbers for the x and y coordinate from 0 to 27
+        change = False
+        for x in snake:
+            if coordinate == x:         # If coordinate is not ok, change will be True
+                change = True
+        for x in appleCoordination:     # to check if the apple is already spawn on a space with an apple
+            if coordinate == x:
+                change = True
+        if change == False:             # If coordinate is ok, the coordinate will be returned
+            return coordinate
+
+
+appleCoordination.append(appleCoordinateGenerator())        # one coordinate for the appleCoordination will be append
 
 
 # Main Loop
-go = True # The game runs as long as the go variable is True
+go = True   # The game runs as long as the go variable is True
 snakeAttachment = None
-appleIndex = -1
+appleIndex = -1     #???
 end = False
 score = 0
 
@@ -44,6 +72,11 @@ while go:
             if event.key == pygame.K_LEFT and direction != 1:
                 direction = 3
 
+    if snakeAttachment != None:
+        snake.append(snakeAttachment.copy())
+        snakeAttachment = None
+        appleCoordination.pop(appleIndex)       # apple will be deleted from the apple list
+
     number = len(snake) - 1
     for i in range(1, len(snake)):                  # iterate through the snake but with the starting point at the first body point directly behind the head of the snake
         snake[number] = snake[number - 1].copy()    # body parts of the snake are moved by one element to the front to the place where the penultimate element was
@@ -58,8 +91,31 @@ while go:
     if direction == 3:          # if direction = 3 (left) then the x coordinate of the head should be decreased by one
         snake[0][0] -= 1
 
-    if end == False:            # check for colision with a wall or the snake itself
+    for x in range(1, len(snake)):
+        if snake[0] == snake[x]:
+            end = True
+
+    if snake[0][0] < 0 or snake[0][0] > 27:
+        end = True
+
+    if snake[0][1] < 0 or snake[0][1] > 27:
+        end = True
+
+    for x in range(0, len(appleCoordination)):      # if the apple coordination = snake head coordination, then the body of the snake will be increased by one and the score will be increased by one as well
+        if appleCoordination[x] == snake[0]:
+            snakeAttachment = snake[-1].copy()
+            appleIndex = x          # apple index will be destroyed (?)
+            score += 1
+
+    random = np.random.randint(0, 100)
+    if random <= 1 and len(appleCoordination) < 4 or len(appleCoordination) == 0:   # random <= 1 equals a 2% probability. if there are already four apples on the field. len(appleCoordination) == 0 means that if there is no apple on the field one has to be spwaned!
+        appleCoordination.append(appleCoordinateGenerator())        # apple will be created
+
+    if end == False:            # check for collision with a wall or the snake itself
         draw()
+        textGround, textBox = textObject("Score: " + str(score), font)
+        textBox.center = ((350, 40))
+        screen.blit(textGround, textBox)
         pygame.display.update()     # changes of the screen will be printed
     else:
         print("You achieved " + str(score) + " points")
