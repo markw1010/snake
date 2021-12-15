@@ -7,6 +7,12 @@ snake = [[13,13],[13,14]]   # [13,13] is the head of the snake. [13,14] is the f
 appleCoordination = []
 direction = 0   # 0 = up, 1 = right, 2 = down, 3 = left
 
+green = (0, 255, 0)
+lightGreen = (0, 102, 0)
+white = (255, 255, 255)
+black = (0, 0, 0)
+red = (180, 0, 0)
+
 pygame.init()
 clock = pygame.time.Clock()
 font = pygame.font.SysFont('arialblack', 35)
@@ -17,20 +23,20 @@ def textObject(text, font):
     return textArea, textArea.get_rect()
 
 def draw():
-    screen.fill((0, 102, 0))
+    screen.fill(black)
 
     for apple in appleCoordination:
         coordination = [apple[0] * elementSize, apple[1] * elementSize]     # The coordinates for the apple spawn. apple[0] = x coordinate. apple[1] = y coordinate.
-        pygame.draw.rect(screen, (255, 0, 0), (coordination[0], coordination[1], elementSize, elementSize), 0)      # spawn the apple
+        pygame.draw.rect(screen, white, (coordination[0], coordination[1], elementSize, elementSize), 1)      # spawn the apple
 
     head = True
     for x in snake:
         coordinate = [x[0] * elementSize, x[1] * elementSize] # To identify at which point on the screen the head of the snake is. x[0] represents the x coordinate and equals 13 whereas x[1] represents the y coordinate and equals 14
         if head:
-            pygame.draw.rect(screen, (0,0,0), (coordinate[0], coordinate[1], elementSize, elementSize),0) # rect is a square. (0,0,0) is the color black. coordinate[0] = x coordinate, coordinate[1] = y coordinate. elementSize = width and height of the square. 0 = square is filled out
+            pygame.draw.rect(screen, red, (coordinate[0], coordinate[1], elementSize, elementSize),0) # rect is a square. (0,0,0) is the color black. coordinate[0] = x coordinate, coordinate[1] = y coordinate. elementSize = width and height of the square. 0 = square is filled out
             head = False
         else:
-            pygame.draw.rect(screen, (255, 255, 0), (coordinate[0], coordinate[1], elementSize, elementSize), 0) # (47, 79, 79) is a grey color
+            pygame.draw.rect(screen, green, (coordinate[0], coordinate[1], elementSize, elementSize), 1) # (47, 79, 79) is a grey color body
 
 
 # This method avoids that an apple can be generated on another apple or on any part of the snake
@@ -63,13 +69,13 @@ while go:
     for event in pygame.event.get():    # all the reactions to the different types of events like button presses are defined in the for loop
         if event.type == pygame.QUIT: sys.exit()    # If the game window gets close, the game will be closed
         if event.type == pygame.KEYDOWN:                        # the following if cases will only allow to move the snake in a certain direkction, if it is not moving in the opposite direction at the moment
-            if event.key == pygame.K_UP and direction != 2:     # it is forbidden to move the snake upwards if it is moving downwards. It first have to move left or right
+            if event.key == pygame.K_w and direction != 2:     # K_UP it is forbidden to move the snake upwards if it is moving downwards. It first have to move left or right
                 direction = 0                                   # If direction is not up, the snake can be moved up (direction 0)
-            if event.key == pygame.K_RIGHT and direction != 3:
+            if event.key == pygame.K_d and direction != 3:  # K_RIGHT
                 direction = 1
-            if event.key == pygame.K_DOWN and direction != 0:
+            if event.key == pygame.K_s and direction != 0:   # K_DOWN
                 direction = 2
-            if event.key == pygame.K_LEFT and direction != 1:
+            if event.key == pygame.K_a and direction != 1:   # K_LEFT
                 direction = 3
 
     if snakeAttachment != None:
